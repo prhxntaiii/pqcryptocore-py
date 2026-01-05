@@ -52,11 +52,14 @@ This follows the same envelope encryption model used by modern cloud KMS systems
 ## Usage
 
 python encryptor.py "file_to_encrypt.txt" or drag and drop
+
 python decryptor.py "file_to_encrypt.txt" or drag and drop
 
-If no key files exist, they will be generated automatically:
+
+### If no key files exist, they will be generated automatically:
 
 kyber_pub.bin
+
 kyber_priv.bin
 
 Output:
@@ -106,4 +109,5 @@ secure_docs/
 ├── kyber_pub.bin
 ├── kyber_priv.bin
 └── hashes.txt
+
 
