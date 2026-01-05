@@ -48,6 +48,9 @@ The user explicitly selects the file to encrypt.
 This follows the same envelope encryption model used by modern cloud KMS systems.
 
 ---
+## Installation
+
+pip install -r requirements.txt
 
 ## Usage
 
@@ -104,10 +107,16 @@ This structure helps maintain clarity, prevents key or file mismatches, and simp
 Example:
 
 secure_docs/
-├── contract.pdf
-├── contract.pdf.enc
+
+├── example.pdf
+
+├── example.pdf.enc
+
 ├── kyber_pub.bin
+
 ├── kyber_priv.bin
+
 └── hashes.txt
+
 
 
