@@ -1,4 +1,4 @@
-# Hybrid File Encryption Tool (Kyber + AES-GCM)
+# PQCryptoCore (Kyber + AES-GCM)
 
 ## Overview
 
@@ -124,6 +124,7 @@ secure_docs/
 ├── kyber_priv.bin
 
 └── hashes.txt
+
 
 
 
