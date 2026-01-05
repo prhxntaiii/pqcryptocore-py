@@ -74,20 +74,27 @@ file_to_encrypt.txt.enc
 Decryption requires:
 
 -The original encrypted file
+
 -The corresponding Kyber private key
 
 A compatible decryptor must be used. Encryption is reversible by design.
 
-Security Notes
+## Security Notes
 
 -AES-GCM provides authentication; tampered files will fail to decrypt.
+
 -Each encryption uses a fresh random nonce.
+
 -The tool does not scan directories or encrypt files automatically.
+
 -Designed for manual, consent-based use only.
+
+
 
 ## Legal & Ethical Use
 
 This tool is intended for defensive security and data protection purposes only.
+
 Do not use it on systems or files you do not own or have explicit authorization to protect.
 
 ## File Organization Recommendation
@@ -117,6 +124,7 @@ secure_docs/
 ├── kyber_priv.bin
 
 └── hashes.txt
+
 
 
 
