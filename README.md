@@ -20,7 +20,7 @@ This tool has **no network activity, no persistence, no automation, and no extor
 The user explicitly selects the files to encrypt.
 
 > ⚠️ **Note:** Currently, this tool **does not support Apple Silicon (M1, M2, etc.)**.  
-> It works on macOS with Intel processors, Windows, and Linux. Support for Apple Silicon may be added in future releases.
+> It works on macOS with Intel processors, Windows, Linux and Android Termux. Support for Apple Silicon may be added in future releases.
 
 ---
 
@@ -101,6 +101,7 @@ You can rename the output if you want to restore the original filename.
 ## Legal & Ethical Use
 This tool is intended for defensive security and data protection purposes only.
 Do not use it on systems or files you do not own or have explicit authorization to protect.
+
 
 
 
