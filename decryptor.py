@@ -1,17 +1,25 @@
 import sys
 import os
-from Crypto.Cipher import AES
-from backend.oqs_backend import KEM
 
-# --- Obtiene las rutas de claves ---
+from backend.oqs.oqs_backend import KEM
+from backend.openssl.openssl_backend import aes_gcm_decrypt, aesni_status
+
+
+# =============================
+#  RUTA CLAVE PRIVADA
+# =============================
+
 def get_priv_file(enc_file, priv_file_arg=None):
     if priv_file_arg:
-        return priv_file_arg  # si el usuario pasa ruta, la usamos
+        return priv_file_arg
     base_dir = os.path.dirname(enc_file)
-    priv_file = os.path.join(base_dir, "kyber_priv.bin")
-    return priv_file
+    return os.path.join(base_dir, "kyber_priv.bin")
 
-# --- Descifra archivo ---
+
+# =============================
+#  DESCIFRADO
+# =============================
+
 def decrypt_file(enc_file, priv_file):
     if not os.path.exists(priv_file):
         print("[!] Private key not found:", priv_file)
@@ -21,7 +29,7 @@ def decrypt_file(enc_file, priv_file):
         with open(enc_file, "rb") as f:
             ct_len = int.from_bytes(f.read(4), "big")
             ct_kyber = f.read(ct_len)
-            nonce = f.read(12)
+            iv = f.read(12)
             tag = f.read(16)
             ciphertext = f.read()
 
@@ -31,24 +39,35 @@ def decrypt_file(enc_file, priv_file):
         aes_key = kem.decapsulate(ct_kyber, sk)
         kem.free()
 
-        cipher = AES.new(aes_key, AES.MODE_GCM, nonce=nonce)
-        data = cipher.decrypt_and_verify(ciphertext, tag)
+        plaintext = aes_gcm_decrypt(
+            key=aes_key,
+            iv=iv,
+            ciphertext=ciphertext,
+            tag=tag
+        )
 
         outfile = enc_file.replace(".enc", ".dec")
         with open(outfile, "wb") as f:
-            f.write(data)
+            f.write(plaintext)
 
         print("[+] Decrypted File:", outfile)
-    except ValueError as e:
-        print("[!] Error during decryption or authentication failed:", e)
+
+    except RuntimeError as e:
+        print("[!] Authentication failed or corrupted file:", e)
     except Exception as e:
         print("[!] Unexpected error:", e)
 
-# --- Main ---
+
+# =============================
+#  MAIN
+# =============================
+
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        print('Use: python decryptor.py "archivo_cifrado" [ruta_privada_opcional]')
+        print('Uso: python decryptor.py "archivo.enc" [kyber_priv.bin]')
         sys.exit(1)
+
+    print(f"[i] AES-NI: {aesni_status()}")
 
     enc_file = sys.argv[1]
     priv_file_arg = sys.argv[2] if len(sys.argv) > 2 else None
