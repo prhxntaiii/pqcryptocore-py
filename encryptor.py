@@ -67,7 +67,7 @@ def encrypt_file(infile, enc_file, pub_file):
 # =============================
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        print('Use: python encryptor.py "archive"')
+        print('Use: python encryptor.py "file"')
         sys.exit(1)
 
     print(f"[i] AES-NI: {aesni_status()}")
@@ -77,4 +77,5 @@ if __name__ == "__main__":
 
     ensure_kyber_keys(pub_file, priv_file)
     encrypt_file(infile, enc_file, pub_file)
+
 
