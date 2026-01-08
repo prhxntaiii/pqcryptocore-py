@@ -1,27 +1,15 @@
-import sys
+# encryptor.py
 import os
-import hashlib
-
+import sys
 from backend.oqs.oqs_backend import KEM
-from backend.openssl.openssl_backend import aes_gcm_encrypt, aesni_status
+from backend.openssl.openssl_backend import aes_gcm_encrypt_stream, aesni_status
+from backend.blake3.blake3_wrapper import BLAKE3
 
-
-# =============================
-#  SHA256
-# =============================
-
-def sha256_file(path):
-    h = hashlib.sha256()
-    with open(path, "rb") as f:
-        for chunk in iter(lambda: f.read(8192), b""):
-            h.update(chunk)
-    return h.digest()
-
+CHUNK_SIZE = 2 * 1024 * 1024  # 2MB
 
 # =============================
 #  RUTAS
 # =============================
-
 def get_output_paths(infile):
     base_output = os.path.join(os.path.dirname(infile), "pq_encrypted")
     os.makedirs(base_output, exist_ok=True)
@@ -30,74 +18,59 @@ def get_output_paths(infile):
     enc_file = os.path.join(base_output, filename + ".enc")
     pub_file = os.path.join(base_output, "kyber_pub.bin")
     priv_file = os.path.join(base_output, "kyber_priv.bin")
-
     return enc_file, pub_file, priv_file
 
-
 # =============================
-#  KYBER
+#  KYBER KEYS
 # =============================
-
 def ensure_kyber_keys(pub_file, priv_file):
     if not os.path.exists(pub_file) or not os.path.exists(priv_file):
         kem = KEM("Kyber1024")
         pk, sk = kem.generate_keypair()
         kem.free()
-
-        with open(pub_file, "wb") as f:
-            f.write(pk)
-        with open(priv_file, "wb") as f:
-            f.write(sk)
-
-        print(f"[+] Claves Kyber generadas")
-
+        with open(pub_file, "wb") as f: f.write(pk)
+        with open(priv_file, "wb") as f: f.write(sk)
+        print(f"[+] Claves Kyber generadas: {pub_file}, {priv_file}")
 
 # =============================
-#  CIFRADO
+#  CIFRADO CON STREAMING CORRECTO
 # =============================
-
 def encrypt_file(infile, enc_file, pub_file):
-    data = open(infile, "rb").read()
-    original_hash = sha256_file(infile)
-
-    # --- PQC ---
-    kem = KEM("Kyber1024")
+    iv = os.urandom(12)
     pk = open(pub_file, "rb").read()
+
+    kem = KEM("Kyber1024")
     ct_kyber, aes_key = kem.encapsulate(pk)
     kem.free()
 
-    # --- AES-GCM (OpenSSL) ---
-    iv = os.urandom(12)
-    ciphertext, tag = aes_gcm_encrypt(
-        key=aes_key,
-        iv=iv,
-        plaintext=data
-    )
+    with open(infile, "rb") as fin, open(enc_file, "wb") as fout:
+        fout.write(len(ct_kyber).to_bytes(4, "big"))
+        fout.write(ct_kyber)
+        fout.write(iv)
 
-    # --- Escritura ---
-    with open(enc_file, "wb") as f:
-        f.write(len(ct_kyber).to_bytes(4, "big"))
-        f.write(ct_kyber)
-        f.write(iv)
-        f.write(tag)
-        f.write(ciphertext)
+        # reservamos espacio para el tag
+        tag_pos = fout.tell()
+        fout.write(b"\x00" * 16)
+
+        tag = aes_gcm_encrypt_stream(aes_key, iv, fin, fout)
+
+        # escribir tag real
+        fout.seek(tag_pos)
+        fout.write(tag)
 
     print("[+] Encrypted File:", enc_file)
-    print("    SHA256 Original  :", original_hash.hex())
-    print("    SHA256 Encrypted :", sha256_file(enc_file).hex())
-
+    print("    BLAKE3 Original :", BLAKE3.hash_file(infile).hex())
+    print("    BLAKE3 Encrypted:", BLAKE3.hash_file(enc_file).hex())
 
 # =============================
 #  MAIN
 # =============================
-
 if __name__ == "__main__":
     if len(sys.argv) < 2:
         print('Uso: python encryptor.py "archivo"')
         sys.exit(1)
 
     print(f"[i] AES-NI: {aesni_status()}")
-
 
     infile = sys.argv[1]
     enc_file, pub_file, priv_file = get_output_paths(infile)
