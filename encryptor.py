@@ -30,7 +30,7 @@ def ensure_kyber_keys(pub_file, priv_file):
         kem.free()
         with open(pub_file, "wb") as f: f.write(pk)
         with open(priv_file, "wb") as f: f.write(sk)
-        print(f"[+] Claves Kyber generadas: {pub_file}, {priv_file}")
+        print(f"[+] Kyber keys generated: {pub_file}, {priv_file}")
 
 # =============================
 #  CIFRADO CON STREAMING CORRECTO
@@ -67,7 +67,7 @@ def encrypt_file(infile, enc_file, pub_file):
 # =============================
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        print('Uso: python encryptor.py "archivo"')
+        print('Use: python encryptor.py "archive"')
         sys.exit(1)
 
     print(f"[i] AES-NI: {aesni_status()}")
@@ -77,3 +77,4 @@ if __name__ == "__main__":
 
     ensure_kyber_keys(pub_file, priv_file)
     encrypt_file(infile, enc_file, pub_file)
+
