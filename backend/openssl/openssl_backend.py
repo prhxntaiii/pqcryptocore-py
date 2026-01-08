@@ -23,14 +23,14 @@ elif SYSTEM == "Linux":
         elif "x86_64" in MACHINE:
             LIB_PATH = os.path.join(BASE_DIR, "native", "openssl", "termux", "x86_64", "lib", "libcrypto.so")
         else:
-            raise OSError(f"Arquitectura no soportada: {MACHINE}")
+            raise OSError(f"Architecture not supported: {MACHINE}")
     else:
         LIB_PATH = os.path.join(BASE_DIR, "native", "openssl", "linux", "lib", "libcrypto.so")
 else:
-    raise OSError(f"Sistema no soportado: {SYSTEM}")
+    raise OSError(f"System not supported: {SYSTEM}")
 
 if not os.path.exists(LIB_PATH):
-    raise OSError(f"No se encontró libcrypto en {LIB_PATH}")
+    raise OSError(f"libcrypto was not found in: {LIB_PATH}")
 
 libcrypto = ctypes.CDLL(LIB_PATH)
 
@@ -180,3 +180,4 @@ def aesni_status():
         return "Enabled" if "aes" in flags else "Disabled"
     except Exception:
         return "Unknown"
+
