@@ -1,53 +1,71 @@
 # PQCryptoCore (Kyber1024 + AES-256-GCM)
 
-PQCryptoCore is a voluntary, user-initiated file encryption tool designed to protect sensitive data such as:
+PQCryptoCore is a **manual, user-initiated file encryption tool** designed to protect sensitive data, such as:
 
-- NDA files
-- Legal documents
-- Intellectual property
-- Offline backups
-- Confidential research data
+* NDA documents
+* Legal files
+* Intellectual property
+* Offline backups
+* Confidential research data
 
-It implements hybrid post-quantum encryption using:
+It implements **hybrid post-quantum encryption** using:
 
-- CRYSTALS-Kyber (Kyber1024) via libOQS
-- AES-256-GCM via OpenSSL EVP (hardware-accelerated when available)
+* **CRYSTALS-Kyber (Kyber1024)** via libOQS
+* **AES-256-GCM** via OpenSSL EVP
 
-This tool has no network activity, no persistence, no automation, and no extortion logic.
-Files are encrypted only when explicitly selected by the user.
+  * Hardware-accelerated when AES-NI is available
 
->⚠️ Note:
->Apple Silicon (M1, M2, etc.) is not supported at this time.
->Supported platforms: Windows, Linux, macOS (Intel), Android (Termux ARM64 and x86_64).
+> ⚠️ Note
+> Apple Silicon (M1/M2/M3) is **not supported**.
+> Supported platforms: **Windows, Linux, macOS Intel, Android (Termux ARM64 and x86_64)**
+
+PQCryptoCore does **not** include networking, persistence, automation, or extortion logic.
+Files are encrypted only when explicitly chosen by the user.
+
+---
 
 ## Threat Model
 
-Protects Against:
+### Protects Against
 
-- Unauthorized access to files at rest
-- Data exposure from lost or stolen storage devices
-- Long-term cryptographic compromise (“harvest now, decrypt later”)
+* Unauthorized access to files at rest
+* Data exposure from lost or stolen storage devices
+* Long-term cryptographic compromise (“harvest now, decrypt later”)
 
-Does NOT Protect Against
+### Does NOT Protect Against
 
-- Compromised operating systems
-- Key exfiltration or memory scraping
-- Active malware on the host
-- User error (loss of private key)
+* Compromised operating systems
+* Active malware on the host
+* Key exfiltration or memory scraping
+* Human error (loss of private key)
+
+---
 
 ## How It Works
 
-1. A Kyber1024 keypair is generated if it does not already exist.
-2. A random AES-256 session key is encapsulated using the Kyber public key.
-3. The file is encrypted using AES-256-GCM (OpenSSL EVP), providing confidentiality and integrity.
+1. A **Kyber1024 keypair** is generated if none exists.
+2. A **random AES-256 session key** is encapsulated using the Kyber public key.
+3. The file is encrypted using **AES-256-GCM in streaming mode**.
 4. The encrypted file and cryptographic material are stored in a dedicated directory.
 
-This follows the envelope encryption model used by modern KMS systems and secure storage solutions.
+This follows the **envelope encryption model** used in modern KMS and secure storage solutions.
+
+---
+
+## Streaming & Memory Usage
+
+* Files are **never loaded entirely into RAM**.
+* Processed in **2 MB chunks** for constant memory usage, even for multi-GB files.
+* No temporary files in `/temp` or elsewhere.
+* Reduces memory exhaustion, accidental leaks, and exposure via system temp directories.
+
+---
 
 ## File Organization
 
 Each encrypted file is stored in its own directory to avoid key reuse or conflicts:
 
+```
 pq_encrypted/<original_filename>/
 
 ├── <original_filename>.enc   # Encrypted file
@@ -56,41 +74,53 @@ pq_encrypted/<original_filename>/
 
 └── kyber_priv.bin            # Kyber private key
 
+```
+
+---
+
 ## Installation
 
 Install dependencies:
 
+```bash
 pip install -r requirements.txt
+```
+
+---
 
 ## Usage
 
 ### Encrypt a file
 
-python encryptor.py "/path/to/file/example.jpg"
+```bash
+python encryptor.py "/path/to/file/example.pdf"
+```
 
-> You can also drag & drop a file onto the script.
+You can also drag & drop a file onto the script.
 
 ### Decrypt a file
 
-python decryptor.py "pq_encrypted/example.jpg/example.jpg.enc"
+```bash
+python decryptor.py "pq_encrypted/example.pdf/example.pdf.enc"
+```
 
-> You can also drag & drop the encrypted file.
+> ℹ️ The `.dec` suffix is **not removed automatically**. Rename the file manually if needed.
+> You can pass an alternate path to your private key if stored elsewhere.
 
->ℹ️ The .dec suffix is not removed automatically.
->You may rename the file manually to restore the original filename.
-
-If your private key is stored elsewhere, you can pass its path explicitly.
+---
 
 ## Security Notes
 
-- AES-GCM provides authenticated encryption; tampered files will fail to decrypt.
-- Each encryption uses a fresh random nonce.
-- Hardware acceleration (AES-NI) is used automatically when supported by the CPU.
-- No directory scanning or automatic encryption is performed.
-- Designed strictly for manual, consent-based use.
+* AES-GCM provides **authenticated encryption**: tampered files will fail to decrypt
+* Each encryption uses a **fresh, random nonce**
+* Hardware acceleration (AES-NI) is used automatically when available, otherwise it will use software to encrypt/decrypt
+* No directory scanning or automatic encryption
+* Strictly manual, consent-based use
+
+---
 
 ## Legal & Ethical Use
 
-This tool is intended solely for defensive security and personal data protection.
-Do not use it on systems or files you do not own or have explicit authorization to protect.
+PQCryptoCore is intended **solely for defensive security and personal data protection**.
 
+Do **not** use it on systems or files you do not own or have explicit authorization to protect.
