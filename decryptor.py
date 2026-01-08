@@ -39,7 +39,7 @@ def decrypt_file(enc_file, priv_file):
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        print('Uso: python decryptor.py "archivo.enc" [kyber_priv.bin]')
+        print('Use: python decryptor.py "file.enc" [kyber_priv.bin]')
         sys.exit(1)
 
     print(f"[i] AES-NI: {aesni_status()}")
@@ -47,3 +47,4 @@ if __name__ == "__main__":
     enc_file = sys.argv[1]
     priv_arg = sys.argv[2] if len(sys.argv) > 2 else None
     decrypt_file(enc_file, get_priv_file(enc_file, priv_arg))
+
