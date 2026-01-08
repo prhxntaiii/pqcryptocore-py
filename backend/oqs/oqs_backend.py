@@ -21,15 +21,15 @@ elif SYSTEM == "Linux":
         elif "x86_64" in MACHINE:
             LIB_PATH = os.path.join(BASE_DIR, "native", "oqs", "termux", "x86_64", "lib", "liboqs.so")
         else:
-            raise OSError(f"Arquitectura Termux no soportada: {MACHINE}")
+            raise OSError(f"Termux architecture not supported: {MACHINE}")
     else:
         LIB_PATH = os.path.join(BASE_DIR, "native", "oqs", "linux", "lib", "liboqs.so")
 else:
-    raise OSError(f"Sistema no soportado: {SYSTEM}")
+    raise OSError(f"System not supported: {SYSTEM}")
 
 # --- Verifica existencia de la librería ---
 if not os.path.exists(LIB_PATH):
-    raise OSError(f"No se encontró la librería en {LIB_PATH}")
+    raise OSError(f"The library wasn't found in {LIB_PATH}")
 
 # --- Carga de la librería ---
 oqs = ctypes.CDLL(LIB_PATH)
@@ -65,11 +65,11 @@ class KEM:
         self.alg_name = alg_name.encode("utf-8")
         self._kem = oqs.OQS_KEM_new(self.alg_name)
         if not self._kem:
-            raise ValueError(f"Algoritmo no soportado: {alg_name}")
+            raise ValueError(f"Algorithm not supported: {alg_name}")
 
         sizes = self._ALG_SIZES.get(alg_name)
         if not sizes:
-            raise ValueError(f"No hay tamaños definidos para {alg_name}")
+            raise ValueError(f"There are no defined sizes for {alg_name}")
 
         self.pub_len = sizes["pub_len"]
         self.priv_len = sizes["priv_len"]
@@ -81,7 +81,7 @@ class KEM:
         sk = ctypes.create_string_buffer(self.priv_len)
         ret = oqs.OQS_KEM_keypair(self._kem, pk, sk)
         if ret != 0:
-            raise RuntimeError("Error generando keypair")
+            raise RuntimeError("Error generating keypair")
         return pk.raw, sk.raw
 
     def encapsulate(self, pk_bytes):
@@ -90,7 +90,7 @@ class KEM:
         key = ctypes.create_string_buffer(self.key_len)
         ret = oqs.OQS_KEM_encaps(self._kem, ct, key, pk)
         if ret != 0:
-            raise RuntimeError("Error encapsulando")
+            raise RuntimeError("Error encapsulating")
         return ct.raw, key.raw
 
     def decapsulate(self, ct_bytes, sk_bytes):
@@ -99,7 +99,7 @@ class KEM:
         key = ctypes.create_string_buffer(self.key_len)
         ret = oqs.OQS_KEM_decaps(self._kem, key, ct, sk)
         if ret != 0:
-            raise RuntimeError("Error decapsulando")
+            raise RuntimeError("Error decapsulating")
         return key.raw
 
     def free(self):
