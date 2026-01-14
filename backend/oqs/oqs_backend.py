@@ -1,21 +1,28 @@
 import os
 import platform
 import ctypes
+import struct
 
-# --- Detecta la raíz del proyecto ---
-BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))  
+# Base del proyecto
+BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+
+SYSTEM = platform.system()
+MACHINE = platform.machine().lower()
+PY_ARCH = struct.calcsize("P") * 8  # 32 o 64 bit
 
 # --- Detecta el sistema operativo y define la ruta de la librería ---
-SYSTEM = platform.system()
-MACHINE = platform.machine().lower()  # útil para termux: arm64, x86_64, etc.
-
 if SYSTEM == "Windows":
-    LIB_PATH = os.path.join(BASE_DIR, "native", "oqs", "windows", "lib", "oqs.dll")
-elif SYSTEM == "Darwin":
-    LIB_PATH = os.path.join(BASE_DIR, "native", "oqs", "macos", "lib", "liboqs.dylib")
+    if PY_ARCH == 64:
+        LIB_PATH = os.path.join(BASE_DIR, "native", "oqs", "windows", "x64", "lib", "oqs.dll")
+    else:
+        LIB_PATH = os.path.join(BASE_DIR, "native", "oqs", "windows", "x32", "lib", "oqs.dll")
+
+elif SYSTEM == "Darwin":  # Mac (Intel o M1 ignorado)
+    LIB_PATH = os.path.join(BASE_DIR, "native", "oqs", "macos", "x64", "lib", "liboqs.dylib")
+
 elif SYSTEM == "Linux":
-    if "android" in platform.platform().lower() or "termux" in SYSTEM.lower():
-        # Termux
+    plat_lower = platform.platform().lower()
+    if "android" in plat_lower or "termux" in plat_lower:
         if "aarch64" in MACHINE or "arm64" in MACHINE:
             LIB_PATH = os.path.join(BASE_DIR, "native", "oqs", "termux", "arm64-v8a", "lib", "liboqs.so")
         elif "x86_64" in MACHINE:
@@ -27,11 +34,12 @@ elif SYSTEM == "Linux":
 else:
     raise OSError(f"System not supported: {SYSTEM}")
 
-# --- Verifica existencia de la librería ---
 if not os.path.exists(LIB_PATH):
     raise OSError(f"The library wasn't found in {LIB_PATH}")
 
-# --- Carga de la librería ---
+
+print(f"Cargando oqs desde: {LIB_PATH}")
+
 oqs = ctypes.CDLL(LIB_PATH)
 
 # --- Prototipos para ctypes ---
