@@ -16,8 +16,8 @@ It uses **hybrid post-quantum encryption**, combining:
 
 > ⚠️ **Note:**
 >  
-> Apple Silicon (M1/M2/M3) is **not supported**.  
-> Supported platforms: **Windows, Linux, macOS Intel, Android (Termux ARM64 and x86_64)**
+> Apple Silicon (M1/M2/M3) is **not supported natively** To run on these Macs, use Rosetta 2.  
+> Supported platforms: **Windows (x64 and x86), Linux, macOS Intel, Android (Termux ARM64 and x86_64)**
 
 PQCryptoCore does **not** include networking, persistence, automation, or extortion functionality. Files are encrypted only when explicitly chosen by the user.
 
@@ -125,3 +125,4 @@ Security Notes
 ## Legal & Ethical Use
 - PQCryptoCore is intended solely for defensive security and personal data protection.
 - Do not use it on systems or files you do not own or have explicit authorization to protect.
+
