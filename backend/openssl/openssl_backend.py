@@ -1,6 +1,7 @@
 import os
 import platform
 import ctypes
+import struct
 
 CHUNK_SIZE = 2 * 1024 * 1024  # 2MB
 
@@ -11,27 +12,37 @@ BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 
 SYSTEM = platform.system()
 MACHINE = platform.machine().lower()
+PY_ARCH = struct.calcsize("P") * 8  # Detecta si Python es 32 o 64 bit
 
 if SYSTEM == "Windows":
-    LIB_PATH = os.path.join(BASE_DIR, "native", "openssl", "windows", "lib", "libcrypto.dll")
-elif SYSTEM == "Darwin":
-    LIB_PATH = os.path.join(BASE_DIR, "native", "openssl", "macos", "lib", "libcrypto.dylib")
+    if PY_ARCH == 64:
+        LIB_PATH = os.path.join(BASE_DIR, "native", "openssl", "windows", "x64", "lib", "libcrypto.dll")
+    else:
+        LIB_PATH = os.path.join(BASE_DIR, "native", "openssl", "windows", "x32", "lib", "libcrypto.dll")
+
+elif SYSTEM == "Darwin":  # Mac (Intel o M1 ignorado)
+    LIB_PATH = os.path.join(BASE_DIR, "native", "oqs", "macos", "x64", "lib", "liboqs.dylib")
+
+
 elif SYSTEM == "Linux":
-    if "android" in platform.platform().lower() or "termux" in platform.platform().lower():
+    plat_lower = platform.platform().lower()
+    if "android" in plat_lower or "termux" in plat_lower:
         if "aarch64" in MACHINE or "arm64" in MACHINE:
             LIB_PATH = os.path.join(BASE_DIR, "native", "openssl", "termux", "arm64-v8a", "lib", "libcrypto.so")
         elif "x86_64" in MACHINE:
             LIB_PATH = os.path.join(BASE_DIR, "native", "openssl", "termux", "x86_64", "lib", "libcrypto.so")
         else:
-            raise OSError(f"Architecture not supported: {MACHINE}")
+            raise OSError(f"Architecture not supported in Termux/Android: {MACHINE}")
     else:
         LIB_PATH = os.path.join(BASE_DIR, "native", "openssl", "linux", "lib", "libcrypto.so")
+
 else:
     raise OSError(f"System not supported: {SYSTEM}")
 
 if not os.path.exists(LIB_PATH):
     raise OSError(f"libcrypto was not found in: {LIB_PATH}")
 
+print(f"Cargando libcrypto desde: {LIB_PATH}")
 libcrypto = ctypes.CDLL(LIB_PATH)
 
 # =============================
@@ -180,4 +191,3 @@ def aesni_status():
         return "Enabled" if "aes" in flags else "Disabled"
     except Exception:
         return "Unknown"
-
